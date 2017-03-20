@@ -32,6 +32,8 @@ _
     },
 };
 sub dump_firefox_history {
+    require DBI;
+
     my %args = @_;
 
     my ($profile, $profile_dir);
@@ -71,7 +73,7 @@ sub dump_firefox_history {
         if ($args{detail}) {
             push @rows, $row;
         } else {
-            push @ows, $row->{url};
+            push @rows, $row->{url};
         }
     }
 
