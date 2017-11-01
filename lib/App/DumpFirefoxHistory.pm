@@ -48,7 +48,7 @@ sub dump_firefox_history {
             return [412, "Can't find any profile directory under ~/.mozilla/firefox"]
                 unless @dirs;
             for my $dir (@dirs) {
-                if ($dir =~ /\.\Q$profile\E\z/) {
+                if ($dir =~ /\.\Q$profile\E(?:-\d+)?\z/) {
                     $profile_dir = $dir;
                     last GET_PROFILE_DIR;
                 }
