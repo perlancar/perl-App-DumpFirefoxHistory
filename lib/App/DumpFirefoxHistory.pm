@@ -29,6 +29,18 @@ provide a directory name.
 
 _
         },
+        copy_size_limit => {
+            schema => 'posint*',
+            default => 100*1024*1024,
+            description => <<'_',
+
+Chrome often locks the History database for a long time. If the size of the
+database is not too large (determine by checking against this limit), then the
+script will copy the file to a temporary file and extract the data from the
+copied database.
+
+_
+        },
     },
 };
 sub dump_firefox_history {
@@ -64,18 +76,31 @@ sub dump_firefox_history {
     my $path = "$profile_dir/places.sqlite";
     return [412, "Can't find $path"] unless -f $path;
 
-    my $dbh = DBI->connect("dbi:SQLite:dbname=$path", "", "", {RaiseError=>1});
-    my $sth = $dbh->prepare("SELECT url,title,last_visit_date,visit_count,frecency FROM moz_places ORDER BY last_visit_date");
-    $sth->execute;
     my @rows;
     my $resmeta = {};
-    while (my $row = $sth->fetchrow_hashref) {
-        if ($args{detail}) {
-            push @rows, $row;
-        } else {
-            push @rows, $row->{url};
+  SELECT: {
+        eval {
+            my $dbh = DBI->connect("dbi:SQLite:dbname=$path", "", "", {RaiseError=>1});
+            my $sth = $dbh->prepare("SELECT url,title,last_visit_date,visit_count,frecency FROM moz_places ORDER BY last_visit_date");
+            $sth->execute;
+            while (my $row = $sth->fetchrow_hashref) {
+                if ($args{detail}) {
+                    push @rows, $row;
+                } else {
+                    push @rows, $row->{url};
+                }
+            }
+        };
+        my $err = $@;
+        if ($err && $err =~ /database is locked/ && (-s $path) <= $args{copy_size_limit}) {
+            require File::Copy;
+            require File::Temp;
+            my ($temp_fh, $temp_path) = File::Temp::tempfile();
+            File::Copy::copy($path, $temp_path) or die $err;
+            $path = $temp_path;
+            redo SELECT;
         }
-    }
+    } # SELECT
 
     $resmeta->{'table.fields'} = [qw/url title last_visit_date visit_count frecency/]
         if $args{detail};
