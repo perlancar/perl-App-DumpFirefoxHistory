@@ -20,11 +20,11 @@ $SPEC{dump_firefox_history} = {
         profile => {
             summary => 'Select profile to use',
             schema => 'str*',
-            default => 'default',
+            default => 'default-release',
             description => <<'_',
 
-You can either provide a name, e.g. `default`, the profile directory of which
-will be then be searched in `~/.mozilla/firefox/*.<name>`. Or you can also
+You can either provide a name, e.g. `default-release`, the profile directory of
+which will be then be searched in `~/.mozilla/firefox/*.<name>`. Or you can also
 provide a directory name.
 
 _
@@ -37,12 +37,12 @@ sub dump_firefox_history {
     my %args = @_;
 
     my ($profile, $profile_dir);
-    $profile = $args{profile} // 'default';
+    $profile = $args{profile} // 'default-release';
 
     # XXX read list of profiles from ~/.mozilla/firefox/profiles.ini
   GET_PROFILE_DIR:
     {
-        if ($profile =~ /\A\w+\z/) {
+        if ($profile =~ /\A[\w-]+\z/) {
             # search profile name in profiles directory
             my @dirs = glob "$ENV{HOME}/.mozilla/firefox/*.*";
             return [412, "Can't find any profile directory under ~/.mozilla/firefox"]
