@@ -31,10 +31,12 @@ provide a directory name.
 
 _
         },
-        copy => {
+        attempt_orig_first => {
             schema => 'bool*',
-            default => 1,
-            summary => 'Do not attempt to open the original history database '.
+            default => 0,
+            'summary' => 'Attempt to open the original history database '.
+                'first instead of directly copying the database',
+            'summary.alt.bool.not' => 'Do not attempt to open the original history database '.
                 '(and possibly get a "locked" error), proceed directly to copy it',
         },
         copy_size_limit => {
@@ -89,7 +91,7 @@ sub dump_firefox_history {
     my $num_attempts;
   SELECT: {
         $num_attempts++;
-        goto COPY if $num_attempts == 1 && $args{copy};
+        goto COPY if $num_attempts == 1 && !$args{attempt_orig_first};
 
         eval {
             my $dbh = DBI->connect("dbi:SQLite:dbname=$path", "", "", {RaiseError=>1});
@@ -104,9 +106,9 @@ sub dump_firefox_history {
             }
         };
         my $err = $@;
-        log_info "Got DBI error: $@";
+        log_info "Got DBI error: $@" if $err;
       COPY: {
-            unless ($args{copy} && $num_attempts == 1 || $err && $err =~ /database is locked/) {
+            unless (!$args{attempt_orig_first} && $num_attempts == 1 || $err && $err =~ /database is locked/) {
                 last;
             }
             my $size = -s $path;
