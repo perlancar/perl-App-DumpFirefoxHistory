@@ -140,6 +140,6 @@ See the included script L<dump-firefox-history>.
 
 =head1 SEE ALSO
 
-L<App::DumpChromeHistory>
+L<App::DumpChromeHistory>, L<App::DumpOperaHistory>
 
-L<App::DumpOperaHistory>
+L<App::FirefoxUtils>
