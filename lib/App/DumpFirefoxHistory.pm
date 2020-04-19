@@ -23,7 +23,7 @@ $SPEC{dump_firefox_history} = {
         },
         profiles => {
             summary => 'Select profile(s) to dump',
-            schema => ['array*', of=>'firefox::profile_name*'],
+            schema => ['array*', of=>'firefox::profile_name*', 'x.perl.coerce_rules'=>['From_str::comma_sep']],
             description => <<'_',
 
 You can choose to dump history for only some profiles. By default, if this
@@ -91,7 +91,7 @@ sub dump_firefox_history {
 
         local $CWD = $profile_dir;
 
-        my $history_path = "$profile_dir/places.sqlite";
+        my $history_path = "places.sqlite";
         unless (-f $history_path) {
             log_error "Cannot find history database file '%s' for profile %s, profile skipped", $history_path, $profile;
             next PROFILE;
