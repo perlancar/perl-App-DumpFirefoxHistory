@@ -158,4 +158,5 @@ See the included script L<dump-firefox-history>.
 
 L<App::DumpChromeHistory>, L<App::DumpOperaHistory>
 
-L<App::FirefoxUtils>
+Other utilities for Firefox: L<App::FirefoxUtils>,
+L<App::FirefoxMultiAccountContainersUtils>.
